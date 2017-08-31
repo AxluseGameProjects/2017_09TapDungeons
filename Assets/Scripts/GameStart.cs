@@ -14,6 +14,7 @@ namespace MainGame {
         [SerializeField] private Image fadePanel;
         [SerializeField] private Color startColor;
         [SerializeField] private Color endColor;
+        [SerializeField] private float waitFadeTime = 2.0f;
         #endregion
 
         #region 基本処理
@@ -25,6 +26,7 @@ namespace MainGame {
             try {
                 GameStartStatus = new Subject<string>();
                 GameStartStatus.OnNext("初期化開始");
+                StartCoroutine(exec());
             } catch (Exception e) {
                 GameStartStatus.OnError(e);
             }
@@ -33,9 +35,28 @@ namespace MainGame {
         /// <summary>
         /// 内部処理
         /// </summary>
-        private void exec() {
+        private IEnumerator exec() {
+
+            #region フェードインフェードアウト処理
+            yield return null;
+            fadePanel.color = startColor;
+            yield return null;
+            // フェードアウト
+            DOTween.To(
+                () => fadePanel.color,
+                color => fadePanel.color = color,
+                endColor,
+                waitFadeTime
+                );
+            yield return new WaitForSeconds(waitFadeTime + 0.1f);
+
+            fadePanel.gameObject.SetActive(false);
+            #endregion
+
             GameStartStatus.OnNext("初期化完了");
         }
+
+        
         #endregion
 
         /// <summary>
@@ -43,7 +64,6 @@ namespace MainGame {
         /// </summary>
         public void Generate() {
             init();
-            exec();
             GameStartStatus.OnCompleted();
         }
     }
